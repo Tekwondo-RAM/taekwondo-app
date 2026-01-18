@@ -9,6 +9,7 @@ import { Account } from './pages/Account';
 import { MainLayout } from './pages/MainLayout';
 import { InstallPWA } from './components/InstallPWA';
 import { TulManagement } from './pages/TulManagement';
+import { ExamDetail } from './pages/ExamDetail';
 import { ProgressProvider } from './context/ProgressContext';
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
         <Routes>
           <Route element={<MainLayout onLogout={handleLogout} />}>
             <Route path="/" element={<Exams />} />
+            <Route path="/exam/:examId" element={<ExamDetail />} />
             <Route path="/tul/:tulId" element={<TulManagement />} />
             <Route path="/tules" element={<Tules />} />
             <Route path="/theory" element={<Theory />} />
