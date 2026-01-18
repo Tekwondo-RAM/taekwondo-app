@@ -9,6 +9,7 @@ import { Account } from './pages/Account';
 import { MainLayout } from './pages/MainLayout';
 import { InstallPWA } from './components/InstallPWA';
 import { TulManagement } from './pages/TulManagement';
+import { ProgressProvider } from './context/ProgressContext';
 
 function App() {
   const [isLogged, setIsLogged] = useState(() => {
@@ -30,17 +31,19 @@ function App() {
   };
 
   const appContent = isLogged ? (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<MainLayout onLogout={handleLogout} />}>
-          <Route path="/" element={<Exams />} />
-          <Route path="/tul/:tulId" element={<TulManagement />} />
-          <Route path="/tules" element={<Tules />} />
-          <Route path="/theory" element={<Theory />} />
-          <Route path="/account" element={<Account />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <ProgressProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<MainLayout onLogout={handleLogout} />}>
+            <Route path="/" element={<Exams />} />
+            <Route path="/tul/:tulId" element={<TulManagement />} />
+            <Route path="/tules" element={<Tules />} />
+            <Route path="/theory" element={<Theory />} />
+            <Route path="/account" element={<Account />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </ProgressProvider>
   ) : (
     <Login onLoginSuccess={handleLoginSuccess} />
   );

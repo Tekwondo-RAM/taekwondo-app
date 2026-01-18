@@ -1,13 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
-import { Edit, User } from 'lucide-react';
+import { Edit, User, Award } from 'lucide-react';
+import { useProgress } from '../context/ProgressContext';
+import { exams } from '../consts/exams';
 
 export const Account = () => {
+  const { currentBelt, setCurrentBelt, getCompletedCount, getInProgressCount } = useProgress();
   const [profileData, setProfileData] = useState({
     name: '',
     email: '',
     avatar: '',
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const currentExam = exams.find((e) => e.id === currentBelt);
 
   useEffect(() => {
     const savedData = localStorage.getItem('profileData');
@@ -113,6 +118,47 @@ export const Account = () => {
               placeholder="tu@email.com"
             />
           </label>
+
+          {/* Selector de cinturón */}
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-gray-700">
+              Cinturón actual
+            </span>
+            <div className="flex items-center gap-3 p-3 border border-gray-300 rounded-md">
+              {currentExam && (
+                <img src={currentExam.img} alt={currentExam.range} className="w-16" />
+              )}
+              <select
+                value={currentBelt}
+                onChange={(e) => setCurrentBelt(e.target.value)}
+                className="flex-1 h-10 px-2 text-gray-900 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                {exams.map((exam) => (
+                  <option key={exam.id} value={exam.id}>
+                    {exam.range}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Estadísticas de progreso */}
+        <div className="flex flex-col gap-3 p-4 mt-4 rounded-lg bg-gray-50">
+          <div className="flex items-center gap-2">
+            <Award className="w-5 h-5 text-primary-500" />
+            <span className="font-medium text-gray-800">Tu progreso</span>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col items-center p-3 bg-white rounded-md shadow-xs">
+              <span className="text-2xl font-bold text-green-600">{getCompletedCount()}</span>
+              <span className="text-xs text-gray-500">Tules completados</span>
+            </div>
+            <div className="flex flex-col items-center p-3 bg-white rounded-md shadow-xs">
+              <span className="text-2xl font-bold text-amber-500">{getInProgressCount()}</span>
+              <span className="text-xs text-gray-500">En progreso</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
