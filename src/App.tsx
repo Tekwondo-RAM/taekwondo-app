@@ -1,8 +1,18 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { routeTree } from './routeTree.gen';
 import { AuthProvider } from './context/AuthContext';
 import { ProgressProvider } from './context/ProgressContext';
 import { LoadingPage } from './components/LoadingPage';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      retry: 1,
+    },
+  },
+});
 
 const SCREEN_ORDER = [
   '/calendar',
@@ -78,15 +88,17 @@ function App() {
   };
 
   return (
-    <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col">
-      <AuthProvider onLogout={handleLogout}>
-        <ProgressProvider>
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-            <RouterProvider router={router} />
-          </div>
-        </ProgressProvider>
-      </AuthProvider>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col">
+        <AuthProvider onLogout={handleLogout}>
+          <ProgressProvider>
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+              <RouterProvider router={router} />
+            </div>
+          </ProgressProvider>
+        </AuthProvider>
+      </div>
+    </QueryClientProvider>
   );
 }
 

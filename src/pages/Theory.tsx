@@ -7,10 +7,12 @@ import {
   type VocabularyCategory,
 } from '@/consts/vocabulary';
 import { Quiz } from '@/components/Quiz';
-import { theoryBlocks } from '@/consts/theoryContent';
 import KoreanBlock from '@/assets/korean-block.svg?react';
 import { belts } from '@/consts/belts';
+import { exams } from '@/consts/exams';
 import { TheoryBeltStripes } from '@/components/TheoryBeltStripes';
+import { Spinner } from '@/common/Spinner';
+import { useTheoryLessons } from '@/services/theory';
 
 type ViewMode = 'categories' | 'study' | 'quiz';
 
@@ -19,51 +21,81 @@ const categories = Array.from(
 ) as VocabularyCategory[];
 
 export const Theory = () => {
+  const { data: lessons, isPending, isError, error } = useTheoryLessons();
+
+  const examLessons = (lessons ?? []).filter(
+    (lesson) => lesson.kind === 'level' && lesson.examId
+  );
+
   return (
     <section className="flex flex-col gap-6">
-      <div className="grid grid-cols-2 gap-x-2 gap-y-6">
-        {/* Modos de estudio */}
-        {theoryBlocks.map((block) => {
-          const belt = belts.find((b) => b.id === block.beltId);
-          return (
-            <Link
-              key={block.id}
-              to="/theory/block/$id"
-              params={{ id: block.id }}
-              className="relative overflow-hidden flex flex-col justify-end gap-2 p-4 bg-white rounded-lg shadow-[0_4px_0_#cdc9c9] min-h-48"
-            >
-              {belt ? <TheoryBeltStripes belt={belt} /> : null}
-              <span className="text-xs text-balance text-gray-600">
-                {block.subtitle}
-              </span>
-              <span className="font-semibold text-xl text-balance">
-                {block.title}
-              </span>
-              <span className="flex items-center justify-between text-sm">
-                Lectura
-                <ArrowRight size={20} />
-              </span>
-            </Link>
-          );
-        })}
+      {isPending ? (
+        <div className="flex justify-center py-12">
+          <Spinner className="size-8" />
+        </div>
+      ) : null}
 
-        <Link
-          to="/theory/learn-korean"
-          className="relative overflow-hidden flex flex-col p-4 bg-primary-500 text-white rounded-lg shadow-[0_4px_0_#000] min-h-48"
-        >
-          <span className="absolute right-0 inset-y-0 flex items-center">
-            <KoreanBlock />
-          </span>
-          <span className="flex-1 flex flex-col justify-end gap-2">
-            <span className="flex-1 text-sm">Aprendizaje Libre</span>
-            <span className="text-sm">Coreano</span>
-            <span className="font-semibold text-2xl">Idioma</span>
-          </span>
-          <span className="flex justify-end">
-            <ArrowRight size={20} />
-          </span>
-        </Link>
-      </div>
+      {isError ? (
+        <div className="py-12 text-center">
+          <p className="text-gray-500">
+            {error.message || 'No se pudieron cargar las lecciones.'}
+          </p>
+        </div>
+      ) : null}
+
+      {!isPending && !isError ? (
+        <div className="grid grid-cols-2 gap-x-2 gap-y-6">
+          {examLessons.map((lesson) => {
+            const examId = lesson.examId!;
+            const exam = exams.find((e) => e.id === examId);
+            const belt = lesson.beltId
+              ? belts.find((b) => b.id === lesson.beltId)
+              : exam
+                ? belts.find((b) => b.id === exam.belt)
+                : undefined;
+
+            return (
+              <Link
+                key={lesson.slug}
+                to="/theory/block/$id"
+                params={{ id: examId }}
+                className="relative overflow-hidden flex flex-col justify-end gap-2 p-4 bg-white rounded-lg shadow-[0_4px_0_#cdc9c9] min-h-48"
+              >
+                {belt ? <TheoryBeltStripes belt={belt} /> : null}
+                {belt ? (
+                  <span className="text-xs text-balance text-gray-600">
+                    {belt.alt}
+                  </span>
+                ) : null}
+                <span className="font-semibold text-xl text-balance">
+                  {exam?.range ?? examId}
+                </span>
+                <span className="flex items-center justify-between text-sm">
+                  Lectura
+                  <ArrowRight size={20} />
+                </span>
+              </Link>
+            );
+          })}
+
+          <Link
+            to="/theory/learn-korean"
+            className="relative overflow-hidden flex flex-col p-4 bg-primary-500 text-white rounded-lg shadow-[0_4px_0_#000] min-h-48"
+          >
+            <span className="absolute right-0 inset-y-0 flex items-center">
+              <KoreanBlock />
+            </span>
+            <span className="flex-1 flex flex-col justify-end gap-2">
+              <span className="flex-1 text-sm">Aprendizaje Libre</span>
+              <span className="text-sm">Coreano</span>
+              <span className="font-semibold text-2xl">Idioma</span>
+            </span>
+            <span className="flex justify-end">
+              <ArrowRight size={20} />
+            </span>
+          </Link>
+        </div>
+      ) : null}
     </section>
   );
 };

@@ -5,8 +5,8 @@ test('theory page shows blocks and korean learning card', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Teoría' })).toBeVisible();
 
-  // Should show theory blocks
-  await expect(page.getByText('Introducción a la teoría')).toBeVisible();
+  // Should show theory blocks from the API (first belt level)
+  await expect(page.getByText('9º GUP')).toBeVisible();
 
   // Should show the Korean learning card
   await expect(page.getByText('Coreano')).toBeVisible();
@@ -16,9 +16,7 @@ test('clicking a theory block shows its content', async ({ page }) => {
   await page.goto('/theory');
 
   // Click on the first theory block
-  await page
-    .getByRole('link', { name: 'Introducción a la teoría' })
-    .click();
+  await page.getByRole('link', { name: /9º GUP/i }).click();
 
   // Should show some content (theory block detail page)
   await expect(

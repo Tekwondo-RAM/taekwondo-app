@@ -11,7 +11,7 @@ export const belts: Belt[] = [
   {
     id: 'white-yellow',
     label: 'P. Amarilla',
-    alt: 'Blanco con punta Amarilla',
+    alt: 'Blanco punta amarilla',
     color: '#fff',
     buckle: '#ffe976',
   },
@@ -24,7 +24,7 @@ export const belts: Belt[] = [
   {
     id: 'yellow-green',
     label: 'P. Verde',
-    alt: 'Amarillo con punta Verde',
+    alt: 'Amarillo punta verde',
     color: '#ffe976',
     buckle: '#387729',
   },
@@ -37,7 +37,7 @@ export const belts: Belt[] = [
   {
     id: 'green-blue',
     label: 'P. Azul',
-    alt: 'Verde con punta Azul',
+    alt: 'Verde punta azul',
     color: '#387729',
     buckle: '#1a4db5',
   },
@@ -50,7 +50,7 @@ export const belts: Belt[] = [
   {
     id: 'blue-red',
     label: 'P. Roja',
-    alt: 'Azul con punta Roja',
+    alt: 'Azul punta roja',
     color: '#1a4db5',
     buckle: '#df000a',
   },
@@ -63,7 +63,7 @@ export const belts: Belt[] = [
   {
     id: 'red-black',
     label: 'P. Negra',
-    alt: 'Rojo con punta Negra',
+    alt: 'Rojo punta negra',
     color: '#df000a',
     buckle: '#1f1f1f',
   },

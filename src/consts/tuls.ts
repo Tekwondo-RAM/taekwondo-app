@@ -10,6 +10,11 @@ export type Tul = {
   isPreTul?: boolean;
 };
 
+const TEST_VIDEO_PATHS: [string, string] = [
+  '/videos/test.mp4',
+  '/videos/test back.mp4',
+];
+
 export const tuls: Tul[] = [
   {
     id: 'saju-jirugi',
@@ -194,4 +199,7 @@ export const tuls: Tul[] = [
     video: ['/videos/won-hyo.mp4', '/videos/won-hyo-2.mp4'],
     movementTimestamps: [0, 4.5, 30, 45.5],
   },
-];
+].map((tul) => ({
+  ...tul,
+  video: [...TEST_VIDEO_PATHS],
+}));

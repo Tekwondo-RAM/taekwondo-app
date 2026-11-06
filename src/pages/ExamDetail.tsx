@@ -6,9 +6,10 @@ import { useProgress } from '@/context/ProgressContext';
 import { BeltIcon } from '@/components/BeltIcon';
 import { belts } from '@/consts/belts';
 import { Route } from '@/routes/_auth/exams/$examId';
-import { getTheoryBlockForExam } from '@/consts/theoryContent';
 import { TheoryBeltStripes } from '@/components/TheoryBeltStripes';
+import { Spinner } from '@/common/Spinner';
 import { cn } from '@/utils/cn';
+import { useTheoryLessonByExam } from '@/services/theory';
 
 // Mapeo de qué tules corresponden a cada examen
 const examTuls: Record<string, string[]> = {
@@ -29,6 +30,11 @@ const examTuls: Record<string, string[]> = {
 export const ExamDetail = () => {
   const { examId } = Route.useParams();
   const { getTulStatus } = useProgress();
+  const {
+    data: theoryLesson,
+    isPending: isTheoryPending,
+    isError: isTheoryError,
+  } = useTheoryLessonByExam(examId);
 
   const exam = exams.find((e) => e.id === examId);
   const belt = belts.find((b) => b.id === exam?.belt);
@@ -44,10 +50,9 @@ export const ExamDetail = () => {
     );
   }
 
-  const theoryBlock = getTheoryBlockForExam(exam.id);
-  const theoryBelt = theoryBlock
-    ? belts.find((b) => b.id === theoryBlock.beltId)
-    : undefined;
+  const theoryBelt = theoryLesson?.beltId
+    ? belts.find((b) => b.id === theoryLesson.beltId)
+    : belt;
 
   const requiredTuls = (examTuls[exam.id] || [])
     .map((tulId) => tuls.find((t) => t.id === tulId))
@@ -134,24 +139,34 @@ export const ExamDetail = () => {
 
       <div className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Teoría</h2>
-        {theoryBlock && theoryBelt ? (
+        {isTheoryPending ? (
+          <div className="flex justify-center py-8">
+            <Spinner className="size-6" />
+          </div>
+        ) : null}
+        {!isTheoryPending && theoryLesson && theoryBelt ? (
           <Link
             to="/theory/block/$id"
-            params={{ id: theoryBlock.id }}
+            params={{ id: exam.id }}
             className="relative overflow-hidden flex flex-col justify-end gap-2 p-4 bg-white rounded-lg shadow-[0_4px_0_#cdc9c9] min-h-44 text-left transition-colors active:bg-slate-50"
           >
             <TheoryBeltStripes belt={theoryBelt} />
             <span className="text-xs text-balance text-gray-600">
-              {theoryBlock.subtitle}
+              {theoryBelt.alt}
             </span>
             <span className="font-semibold text-xl text-balance text-gray-900">
-              {theoryBlock.title}
+              {exam.range}
             </span>
             <span className="flex items-center justify-between text-sm text-gray-800 pt-1">
               Lectura
               <ChevronRight aria-hidden size={20} />
             </span>
           </Link>
+        ) : null}
+        {!isTheoryPending && (isTheoryError || !theoryLesson) ? (
+          <p className="text-sm text-gray-400">
+            No hay teoría publicada para este examen.
+          </p>
         ) : null}
       </div>
 

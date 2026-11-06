@@ -246,6 +246,60 @@ function Video(props: React.ComponentProps<'video'>) {
   );
 }
 
+function formatPlaybackTime(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
+  const totalSeconds = Math.floor(seconds);
+  const minutes = Math.floor(totalSeconds / 60);
+  const remainingSeconds = totalSeconds % 60;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+function PlayerTimeline(props: React.ComponentProps<'div'>) {
+  const dispatch = useMediaDispatch();
+  const currentTime = useMediaSelector((state) => state.mediaCurrentTime ?? 0);
+  const mediaDuration = useMediaSelector((state) => {
+    const duration = state.mediaDuration ?? 0;
+    return Number.isFinite(duration) && duration > 0 ? duration : 0;
+  });
+
+  const timelineMax = mediaDuration > 0 ? mediaDuration : 0.1;
+  const timelineValue =
+    mediaDuration > 0 ? Math.min(currentTime, mediaDuration) : 0;
+
+  const onTimelineChange = useCallback(
+    (value: number | number[]) => {
+      const nextTime = Array.isArray(value) ? value[0] : value;
+      dispatch({
+        type: MediaActionTypes.MEDIA_SEEK_REQUEST,
+        detail: nextTime,
+      });
+    },
+    [dispatch]
+  );
+
+  return (
+    <div
+      data-slot="player-timeline"
+      className="absolute inset-x-3 bottom-3 z-40 rounded-md bg-black/45 px-2 py-1.5 backdrop-blur-xs landscape:inset-x-6 landscape:bottom-4"
+      {...props}
+    >
+      <Slider
+        aria-label="Linea de tiempo del video"
+        className="w-full"
+        min={0}
+        max={timelineMax}
+        step={0.1}
+        value={timelineValue}
+        onValueChange={onTimelineChange}
+      />
+      <div className="mt-1 flex items-center justify-between text-[11px] font-medium tabular-nums text-white/90">
+        <span>{formatPlaybackTime(timelineValue)}</span>
+        <span>{formatPlaybackTime(mediaDuration)}</span>
+      </div>
+    </div>
+  );
+}
+
 function PlayButton({
   children,
   ...props
@@ -431,32 +485,60 @@ function SwitchVideoButton(props: React.ComponentProps<typeof Button>) {
     tul,
   } = usePlayer();
   const dispatch = useMediaDispatch();
+  const mediaRef = useMediaRef();
   const prevTimeRef = useRef<number>(0);
   const prevVideoIndexRef = useRef<number>(currentVideoIndex ?? 0);
   const prevMediaPausedRef = useRef<boolean>(true);
   const currentTime = useMediaSelector((state) => state.mediaCurrentTime ?? 0);
   const mediaPaused = useMediaSelector((state) => state.mediaPaused ?? true);
 
-  const switchVideo = useCallback(() => {
-    prevTimeRef.current = currentTime;
-    prevMediaPausedRef.current = mediaPaused;
-    setCurrentVideoIndex?.((prevIndex) => (prevIndex + 1) % tul.video.length);
-  }, [currentTime, mediaPaused, setCurrentVideoIndex, tul.video.length]);
-
-  useEffect(() => {
-    if (currentVideoIndex !== prevVideoIndexRef.current) {
+  const restorePlaybackState = useCallback(
+    (time: number, paused: boolean) => {
       dispatch({
         type: MediaActionTypes.MEDIA_SEEK_REQUEST,
-        detail: prevTimeRef.current,
+        detail: time,
       });
       dispatch({
-        type: prevMediaPausedRef.current
+        type: paused
           ? MediaActionTypes.MEDIA_PAUSE_REQUEST
           : MediaActionTypes.MEDIA_PLAY_REQUEST,
       });
+    },
+    [dispatch]
+  );
+
+  const switchVideo = useCallback(() => {
+    const liveCurrentTime = mediaRef.current?.currentTime;
+    prevTimeRef.current =
+      typeof liveCurrentTime === 'number' && Number.isFinite(liveCurrentTime)
+        ? liveCurrentTime
+        : currentTime;
+    prevMediaPausedRef.current = mediaPaused;
+    setCurrentVideoIndex?.((prevIndex) => (prevIndex + 1) % tul.video.length);
+  }, [currentTime, mediaPaused, mediaRef, setCurrentVideoIndex, tul.video.length]);
+
+  useEffect(() => {
+    if (currentVideoIndex !== prevVideoIndexRef.current) {
+      const videoElement = mediaRef.current;
+      const targetTime = prevTimeRef.current;
+      const wasPaused = prevMediaPausedRef.current;
+      const restoreCurrentTimeline = () =>
+        restorePlaybackState(targetTime, wasPaused);
+
+      videoElement?.addEventListener('loadedmetadata', restoreCurrentTimeline, {
+        once: true,
+      });
+      restoreCurrentTimeline();
       prevVideoIndexRef.current = currentVideoIndex ?? 0;
+
+      return () => {
+        videoElement?.removeEventListener(
+          'loadedmetadata',
+          restoreCurrentTimeline
+        );
+      };
     }
-  }, [currentVideoIndex, dispatch]);
+  }, [currentVideoIndex, mediaRef, restorePlaybackState]);
 
   return (
     <Button
@@ -639,6 +721,8 @@ const LANDSCAPE_BUTTON_CLASSNAME =
 export function Player(props: PlayerProps) {
   const [controlsVisible, setControlsVisible] = useState(true);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const videoFrameClassName =
+    currentVideoIndex === 1 ? 'object-[50%_center]' : 'object-[50%_center]';
 
   return (
     <PlayerProvider
@@ -651,8 +735,11 @@ export function Player(props: PlayerProps) {
       }}
     >
       <PlayerContainer className="flex flex-col gap-4 h-full portrait:-mx-4 landscape:absolute landscape:inset-0 landscape:bg-black landscape:z-50">
-        <div className="bg-black flex-1 h-full relative">
-          <Video className="size-full object-cover" />
+        <div className="bg-black flex-1 h-full relative overflow-hidden">
+          <Video
+            className={cn('size-full object-cover', videoFrameClassName)}
+          />
+          <PlayerTimeline />
           <PlayerLoading />
         </div>
         <div

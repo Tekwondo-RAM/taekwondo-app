@@ -36,7 +36,9 @@ export type TheoryBlock = {
   content: string;
 };
 
-export function theoryStudyFilterForExamId(examId: string): TheoryStudyFilterId {
+export function theoryStudyFilterForExamId(
+  examId: string
+): TheoryStudyFilterId {
   if (examId.startsWith('dan')) return 'dan';
   const n = Number(examId.replace('gup-', ''));
   if (n >= 7) return 'early';
@@ -57,28 +59,23 @@ const THEORY_GRID_EXAM_IDS = [
 ] as const;
 
 /** Fuentes de texto fusionadas en cada bloque (GUP “entero” + siguiente bloque con punta). */
-const MERGE_CONTENT_IDS: Record<(typeof THEORY_GRID_EXAM_IDS)[number], string[]> =
-  {
-    'gup-9': ['gup-9'],
-    'gup-7': ['gup-8', 'gup-7'],
-    'gup-5': ['gup-6', 'gup-5'],
-    'gup-3': ['gup-4', 'gup-3'],
-    'gup-1': ['gup-2', 'gup-1'],
-    'dan-1': ['dan-1'],
-    'dan-2': ['dan-2'],
-    'dan-3': ['dan-3'],
-  };
+const MERGE_CONTENT_IDS: Record<
+  (typeof THEORY_GRID_EXAM_IDS)[number],
+  string[]
+> = {
+  'gup-9': ['gup-9'],
+  'gup-7': ['gup-8', 'gup-7'],
+  'gup-5': ['gup-6', 'gup-5'],
+  'gup-3': ['gup-4', 'gup-3'],
+  'gup-1': ['gup-2', 'gup-1'],
+  'dan-1': ['dan-1'],
+  'dan-2': ['dan-2'],
+  'dan-3': ['dan-3'],
+};
 
-/** Examen de detalle → id del bloque de teoría (mismo contenido para 8º y 7º GUP, etc.). */
+/** Examen de detalle → id del bloque de teoría (1:1 con examId / API). */
 export function theoryBlockIdForExam(examId: string): string {
-  if (examId.startsWith('dan')) return examId;
-  const n = Number(examId.replace('gup-', ''));
-  if (Number.isNaN(n)) return examId;
-  if (n >= 9) return 'gup-9';
-  if (n >= 7) return 'gup-7';
-  if (n >= 5) return 'gup-5';
-  if (n >= 3) return 'gup-3';
-  return 'gup-1';
+  return examId;
 }
 
 export function getTheoryBlockForExam(examId: string): TheoryBlock | undefined {

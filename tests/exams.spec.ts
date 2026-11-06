@@ -13,8 +13,8 @@ test('exam list shows all belt levels', async ({ page }) => {
 test('clicking an exam shows its required tules', async ({ page }) => {
   await page.goto('/');
 
-  // Click on the first exam (Blanco con punta Amarilla)
-  await page.getByRole('link', { name: 'Blanco con punta Amarilla' }).click();
+  // Click on the first exam (Blanco punta amarilla)
+  await page.getByRole('link', { name: 'Blanco punta amarilla' }).click();
 
   // Should see the exam detail with required tules
   await expect(page.getByText('Tules')).toBeVisible();
@@ -25,7 +25,7 @@ test('clicking a tul from exam detail navigates to tul page', async ({
 }) => {
   await page.goto('/');
 
-  await page.getByRole('link', { name: 'Blanco con punta Amarilla' }).click();
+  await page.getByRole('link', { name: 'Blanco punta amarilla' }).click();
   await expect(page.getByText('Tules')).toBeVisible();
 
   // Click on a tul in the list (accessible name from aria-label)
